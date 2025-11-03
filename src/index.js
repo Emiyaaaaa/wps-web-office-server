@@ -48,7 +48,7 @@ app.get('/v3/3rd/files/:fileId', (req, res) => {
   res.json({
     code: 0,
     data: {
-      id: fileId,
+      id: req.params.fileId,
       name: path.basename(filePath),
       version: 1,
       size: stats.size,
