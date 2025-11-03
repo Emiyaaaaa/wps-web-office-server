@@ -46,14 +46,17 @@ app.get('/v3/3rd/files/:fileId', (req, res) => {
   }
   const stats = fs.statSync(filePath);
   res.json({
-    id: fileId,
-    name: path.basename(filePath),
-    version: 1,
-    size: stats.size,
-    create_time: toIntSeconds(stats.birthtimeMs || Date.now()),
-    modify_time: toIntSeconds(stats.mtimeMs || Date.now()),
-    creator_id: 'system',
-    modifier_id: 'system',
+    code: 0,
+    data: {
+      id: fileId,
+      name: path.basename(filePath),
+      version: 1,
+      size: stats.size,
+      create_time: toIntSeconds(stats.birthtimeMs || Date.now()),
+      modify_time: toIntSeconds(stats.mtimeMs || Date.now()),
+      creator_id: 'system',
+      modifier_id: 'system',
+    }
   });
 });
 
@@ -61,29 +64,32 @@ app.get('/v3/3rd/files/:fileId/download', (req, res) => {
   const fileId = req.params.fileId;
   const filePath = getFilePathFromId(fileId);
   if (!fileExists(filePath)) {
-    res.status(404).json({ message: 'file not found' });
+    res.json({ code: 40004 })
     return;
   }
   const baseUrl = `${req.protocol}://${req.get('host')}`;
   const url = `${baseUrl}/public/${encodeURIComponent(path.basename(filePath))}`;
   const digest = computeMd5(filePath);
   res.json({
-    url,
-    digest,
-    digest_type: 'md5',
-    headers: {},
+    code: 0,
+    data: {
+      url,
+      digest,
+      digest_type: 'md5',
+      headers: {},
+    }
   });
 });
 
 app.get(/^\/public\/(.+)$/i, (req, res) => {
   const requestedPath = req.params[0];
   if (!requestedPath) {
-    res.status(404).json({ message: 'file not found' });
+    res.json({ code: 40004 })
     return;
   }
   const absolutePath = path.join(publicDir, requestedPath);
   if (!fileExists(absolutePath)) {
-    res.status(404).json({ message: 'file not found' });
+    res.json({ code: 40004 })
     return;
   }
   const filename = path.basename(absolutePath);
