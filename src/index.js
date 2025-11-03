@@ -38,14 +38,21 @@ app.get('/', (req, res) => {
 });
 
 app.get('/v3/3rd/users', (req, res) => {
-  res.json({
-    code: 0,
-    data: {
-      id: 'system',
-      name: 'system',
-      avatar_url: 'https://avatars.githubusercontent.com/u/37606228?v=4',
-    }
-  });
+  const userIdsParam = req.query.user_ids;
+  const fallbackIds = ['system'];
+  const userIds = Array.isArray(userIdsParam)
+    ? userIdsParam
+    : (typeof userIdsParam === 'string' && userIdsParam)
+      ? userIdsParam.split(',').filter(Boolean)
+      : fallbackIds;
+
+  const users = userIds.map((id) => ({
+    id: String(id),
+    name: id === 'system' ? 'system' : `user name${String(id)}`,
+    avatar_url: 'https://avatars.githubusercontent.com/u/37606228?v=4',
+  }));
+
+  res.json({ code: 0, data: users });
 });
 
 app.get('/v3/3rd/files/:fileId', (req, res) => {
