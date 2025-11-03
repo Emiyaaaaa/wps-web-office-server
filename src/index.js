@@ -192,6 +192,25 @@ app.get('/v3/3rd/files/:file_id/permission', (req, res) => {
   });
 });
 
+// 文档重命名（Mock 实现，不做真实重命名）
+// PUT /v3/3rd/files/:file_id/name
+app.put('/v3/3rd/files/:file_id/name', (req, res) => {
+  const rawId = req.params.file_id || '';
+  const fileId = rawId.replace('_', '.');
+  const filePath = getFilePathFromId(fileId);
+  if (!fileExists(filePath)) {
+    res.json({ code: 40004 });
+    return;
+  }
+  const newName = req.body && req.body.name;
+  if (!newName || typeof newName !== 'string') {
+    res.status(400).json({ code: 40000, message: 'name is required' });
+    return;
+  }
+  // Mock 成功，不改变任何真实文件，仅返回成功结构
+  res.json({ code: 0, data: {} });
+});
+
 app.get(/^\/public\/(.+)$/i, (req, res) => {
   const requestedPath = req.params[0];
   if (!requestedPath) {
