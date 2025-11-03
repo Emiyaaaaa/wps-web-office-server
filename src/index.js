@@ -180,14 +180,14 @@ app.get('/v3/3rd/files/:file_id/permission', (req, res) => {
     data: {
       user_id: 'system',
       read: 1,
-      update: 0,
-      download: 0,
+      update: 1,
+      download: 1,
       rename: 0,
       history: 0,
       copy: 0,
-      print: 0,
-      saveas: 0,
-      comment: 0,
+      print: 1,
+      saveas: 1,
+      comment: 1,
     }
   });
 });
