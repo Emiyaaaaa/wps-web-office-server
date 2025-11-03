@@ -1,12 +1,9 @@
-const Koa = require('koa');
-const Router = require('koa-router');
-const send = require('koa-send');
+const express = require('express');
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
 
-const app = new Koa();
-const router = new Router();
+const app = express();
 
 const publicDir = path.join(__dirname, '..', 'public');
 
@@ -36,20 +33,19 @@ function computeMd5(filePath) {
   return hash.digest('hex');
 }
 
-router.get('/', async (ctx) => {
-  ctx.body = 'Hello World';
+app.get('/', (req, res) => {
+  res.send('Hello World');
 });
 
-router.get('/v3/3rd/files/:fileId', async (ctx) => {
-  const fileId = ctx.params.fileId;
+app.get('/v3/3rd/files/:fileId', (req, res) => {
+  const fileId = req.params.fileId;
   const filePath = getFilePathFromId(fileId);
   if (!fileExists(filePath)) {
-    ctx.status = 404;
-    ctx.body = { message: 'file not found' };
+    res.status(404).json({ message: 'file not found' });
     return;
   }
   const stats = fs.statSync(filePath);
-  ctx.body = {
+  res.json({
     id: fileId,
     name: path.basename(filePath),
     version: 1,
@@ -58,43 +54,41 @@ router.get('/v3/3rd/files/:fileId', async (ctx) => {
     modify_time: toIntSeconds(stats.mtimeMs || Date.now()),
     creator_id: 'system',
     modifier_id: 'system',
-  };
+  });
 });
 
-router.get('/v3/3rd/files/:fileId/download', async (ctx) => {
-  const fileId = ctx.params.fileId;
+app.get('/v3/3rd/files/:fileId/download', (req, res) => {
+  const fileId = req.params.fileId;
   const filePath = getFilePathFromId(fileId);
   if (!fileExists(filePath)) {
-    ctx.status = 404;
-    ctx.body = { message: 'file not found' };
+    res.status(404).json({ message: 'file not found' });
     return;
   }
-  const baseUrl = `${ctx.protocol}://${ctx.host}`;
+  const baseUrl = `${req.protocol}://${req.get('host')}`;
   const url = `${baseUrl}/public/${encodeURIComponent(path.basename(filePath))}`;
   const digest = computeMd5(filePath);
-  ctx.body = {
+  res.json({
     url,
     digest,
     digest_type: 'md5',
     headers: {},
-  };
+  });
 });
 
-router.get(/^\/public\/(.+)$/i, async (ctx) => {
-  const requestedPath = ctx.captures && ctx.captures[0];
+app.get(/^\/public\/(.+)$/i, (req, res) => {
+  const requestedPath = req.params[0];
   if (!requestedPath) {
-    ctx.status = 404;
-    ctx.body = { message: 'file not found' };
+    res.status(404).json({ message: 'file not found' });
     return;
   }
-  // Force download
-  const filename = path.basename(requestedPath);
-  ctx.set('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(filename)}`);
-  await send(ctx, requestedPath, { root: publicDir });
+  const absolutePath = path.join(publicDir, requestedPath);
+  if (!fileExists(absolutePath)) {
+    res.status(404).json({ message: 'file not found' });
+    return;
+  }
+  const filename = path.basename(absolutePath);
+  res.download(absolutePath, filename);
 });
-
-app.use(router.routes());
-app.use(router.allowedMethods());
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
