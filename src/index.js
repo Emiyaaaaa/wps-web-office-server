@@ -37,6 +37,17 @@ app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
+app.get('/v3/3rd/users', (req, res) => {
+  res.json({
+    code: 0,
+    data: {
+      id: 'system',
+      name: 'system',
+      avatar_url: 'https://avatars.githubusercontent.com/u/37606228?v=4',
+    }
+  });
+});
+
 app.get('/v3/3rd/files/:fileId', (req, res) => {
   const fileId = req.params.fileId.replace('_', '.');
   const filePath = getFilePathFromId(fileId);
