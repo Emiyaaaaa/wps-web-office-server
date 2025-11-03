@@ -81,6 +81,30 @@ app.get('/v3/3rd/files/:fileId/download', (req, res) => {
   });
 });
 
+app.get('/v3/3rd/files/:file_id/permission', (req, res) => {
+  const fileId = (req.params.file_id || '').replace('_', '.');
+  const filePath = getFilePathFromId(fileId);
+  if (!fileExists(filePath)) {
+    res.json({ code: 40004 })
+    return;
+  }
+  res.json({
+    code: 0,
+    data: {
+      user_id: 'system',
+      read: 1,
+      update: 1,
+      download: 1,
+      rename: 1,
+      history: 1,
+      copy: 1,
+      print: 1,
+      saveas: 1,
+      comment: 1,
+    }
+  });
+});
+
 app.get(/^\/public\/(.+)$/i, (req, res) => {
   const requestedPath = req.params[0];
   if (!requestedPath) {
