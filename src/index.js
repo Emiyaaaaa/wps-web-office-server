@@ -38,10 +38,10 @@ app.get('/', (req, res) => {
 });
 
 app.get('/v3/3rd/files/:fileId', (req, res) => {
-  const fileId = req.params.fileId;
+  const fileId = req.params.fileId.replace('_', '.');
   const filePath = getFilePathFromId(fileId);
   if (!fileExists(filePath)) {
-    res.status(404).json({ message: 'file not found' });
+    res.json({ code: 40004 })
     return;
   }
   const stats = fs.statSync(filePath);
@@ -61,7 +61,7 @@ app.get('/v3/3rd/files/:fileId', (req, res) => {
 });
 
 app.get('/v3/3rd/files/:fileId/download', (req, res) => {
-  const fileId = req.params.fileId;
+  const fileId = req.params.fileId.replace('_', '.');
   const filePath = getFilePathFromId(fileId);
   if (!fileExists(filePath)) {
     res.json({ code: 40004 })
